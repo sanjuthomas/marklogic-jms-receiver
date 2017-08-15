@@ -20,9 +20,18 @@ public class AsyncReceiver implements MessageListener, ExceptionListener {
         
     }
 
-    public void onMessage(Message arg0) {
-        // TODO Auto-generated method stub
-        
+
+    public void onMessage(Message m) {
+    	if (m instanceof TextMessage) {
+    	    TextMessage message = (TextMessage) m;
+    	    try {
+				System.out.println("Reading message: " + message.getText());
+			} catch (JMSException e) {
+				e.printStackTrace();
+			}
+    	} else {
+    		System.out.println(m.getClass());
+    	}
     }
 
 }
