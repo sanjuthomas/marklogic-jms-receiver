@@ -20,7 +20,7 @@ import javax.naming.NamingException;
  */
 public class Main {
 
-    public static void main(final String[] args) throws NamingException, JMSException {
+    public static void main(final String[] args) throws NamingException, JMSException, FileNotFoundException, IOException {
 
         if (args.length != 1) {
             System.err.println("######################################");
@@ -30,6 +30,7 @@ public class Main {
         }
 
         final Properties cProperties = new Properties();
+        cProperties.load(new FileInputStream(new File(args[0])));
         final String INITIAL_CONTEXT_FACTORY = cProperties.getProperty(ConnectionProperties.INITIAL_CONTEXT_FACTORY);
         final String CONTEXT_PROVIDER_URL = cProperties.getProperty(ConnectionProperties.CONTEXT_PROVIDER_URL);
         final String QUEUE_NAME = cProperties.getProperty(ConnectionProperties.QUEUE_NAME);
@@ -37,10 +38,11 @@ public class Main {
         final Properties connection = new Properties();
         connection.put(Context.INITIAL_CONTEXT_FACTORY, INITIAL_CONTEXT_FACTORY);
         connection.put(Context.PROVIDER_URL, CONTEXT_PROVIDER_URL);
+        connection.put("queue.bar", "foo.bar");
 
         final InitialContext initialContext = new InitialContext(connection);
-        final Queue queue = (Queue) initialContext.lookup(QUEUE_NAME);
-        final QueueConnectionFactory connFactory = (QueueConnectionFactory) initialContext.lookup(QueueConnectionFactory.class.getName());
+        final Queue queue = (Queue) initialContext.lookup("bar");
+        final QueueConnectionFactory connFactory = (QueueConnectionFactory) initialContext.lookup("QueueConnectionFactory");
 
         final QueueConnection queueConn = connFactory.createQueueConnection();
         final QueueSession queueSession = queueConn.createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
