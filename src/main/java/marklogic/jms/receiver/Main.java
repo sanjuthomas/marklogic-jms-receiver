@@ -13,9 +13,17 @@ import javax.jms.QueueConnectionFactory;
 import javax.jms.QueueReceiver;
 import javax.jms.QueueSession;
 import javax.jms.Session;
+import javax.jms.Topic;
+import javax.jms.TopicConnection;
+import javax.jms.TopicConnectionFactory;
+import javax.jms.TopicSession;
+import javax.jms.TopicSubscriber;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 
@@ -23,6 +31,8 @@ import javax.naming.NamingException;
  *
  */
 public class Main {
+    
+    private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
     public static void main(final String[] args) throws NamingException, JMSException, FileNotFoundException, IOException {
 
@@ -37,27 +47,50 @@ public class Main {
         cProperties.load(new FileInputStream(new File(args[0])));
         final String INITIAL_CONTEXT_FACTORY = cProperties.getProperty(ConnectionProperties.INITIAL_CONTEXT_FACTORY);
         final String CONTEXT_PROVIDER_URL = cProperties.getProperty(ConnectionProperties.CONTEXT_PROVIDER_URL);
-        final String QUEUE_NAME = cProperties.getProperty(ConnectionProperties.QUEUE_NAME);
-        final String TYPE = cProperties.getProperty(ConnectionProperties.TYPE);
-
+        final String TYPES = cProperties.getProperty(ConnectionProperties.TYPES);
         final Properties connection = new Properties();
         connection.put(Context.INITIAL_CONTEXT_FACTORY, INITIAL_CONTEXT_FACTORY);
         connection.put(Context.PROVIDER_URL, CONTEXT_PROVIDER_URL);
-        connection.put(TYPE + "." + QUEUE_NAME, QUEUE_NAME);
-
-        final InitialContext initialContext = new InitialContext(connection);
-        final Queue queue = (Queue) initialContext.lookup(QUEUE_NAME);
-        final QueueConnectionFactory connFactory = (QueueConnectionFactory) initialContext.lookup(QueueConnectionFactory.class.getSimpleName());
-
-        final QueueConnection queueConn = connFactory.createQueueConnection();
-        final QueueSession queueSession = queueConn.createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
-        final QueueReceiver queueReceiver = queueSession.createReceiver(queue);
         
-        final AsyncReceiver asyncReceiver = new AsyncReceiver(cProperties);
-        queueReceiver.setMessageListener(asyncReceiver);
+        for(final String type : TYPES.split(",")){
+            final String names = cProperties.getProperty(type.trim());
+            for(final String name : names.split(",")){
+                if(Queue.class.getSimpleName().toLowerCase().equals(type)){
+                    logger.info("Type :", type);
+                    logger.info("Name :", name);
+                    connection.put(type + "." + name, name);
+                    final InitialContext initialContext = new InitialContext(connection);
+                    final Queue queue = (Queue) initialContext.lookup(name);
+                    final QueueConnectionFactory connFactory = (QueueConnectionFactory) initialContext.lookup(QueueConnectionFactory.class.getSimpleName());
 
-        queueConn.setExceptionListener(asyncReceiver);
-        queueConn.start();
+                    final QueueConnection queueConn = connFactory.createQueueConnection();
+                    final QueueSession queueSession = queueConn.createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
+                    final QueueReceiver queueReceiver = queueSession.createReceiver(queue);
+                    
+                    final AsyncReceiver asyncReceiver = new AsyncReceiver(cProperties);
+                    queueReceiver.setMessageListener(asyncReceiver);
+
+                    queueConn.setExceptionListener(asyncReceiver);
+                    queueConn.start();
+                }else if(Topic.class.getSimpleName().toLowerCase().equals(type)){
+                    logger.info("Type :", type);
+                    logger.info("Name :", name);
+                    connection.put(type + "." + name, name);
+                    final InitialContext initialContext = new InitialContext(connection);
+                    final Topic topic = (Topic) initialContext.lookup(name);
+                    final TopicConnectionFactory topicFactory = (TopicConnectionFactory) initialContext.lookup(TopicConnectionFactory.class.getSimpleName());
+
+                    final TopicConnection topicConn = topicFactory.createTopicConnection();
+                    final TopicSession topicSession = topicConn.createTopicSession(false, Session.AUTO_ACKNOWLEDGE);
+                    final TopicSubscriber topicSubscriber = topicSession.createDurableSubscriber(topic, name);
+                    
+                    final AsyncReceiver asyncReceiver = new AsyncReceiver(cProperties);
+                    topicSubscriber.setMessageListener(asyncReceiver);
+
+                    topicConn.setExceptionListener(asyncReceiver);
+                    topicConn.start();
+                }
+            }
+        }
     }
-
 }
