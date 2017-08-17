@@ -50,9 +50,8 @@ public class AsyncReceiver implements MessageListener, ExceptionListener {
     }
 
     public void onMessage(Message m) {
-    	
         if (m instanceof TextMessage) {
-            TextMessage message = (TextMessage) m;
+            final TextMessage message = (TextMessage) m;
             try {
                 final String messageText = message.getText();
                 if(null != messageText){

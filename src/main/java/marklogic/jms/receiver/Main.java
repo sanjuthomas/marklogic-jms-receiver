@@ -82,7 +82,7 @@ public class Main {
 
                     final TopicConnection topicConn = topicFactory.createTopicConnection();
                     final TopicSession topicSession = topicConn.createTopicSession(false, Session.AUTO_ACKNOWLEDGE);
-                    final TopicSubscriber topicSubscriber = topicSession.createDurableSubscriber(topic, name);
+                    final TopicSubscriber topicSubscriber = topicSession.createSubscriber(topic);
                     
                     final AsyncReceiver asyncReceiver = new AsyncReceiver(cProperties);
                     topicSubscriber.setMessageListener(asyncReceiver);
