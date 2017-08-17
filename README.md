@@ -5,5 +5,5 @@ marklogic-jms-receiver is standalone java application to receive the message(s) 
 ![MarkLogic JMS Receiver](arch.png)
 
 # Configuration
-Please refer to configuration file [here.](https://github.com/sanjuthomas/marklogic-jms-receiver/tree/master/config)
+Please refer to configuration file [here.]https://github.com/sanjuthomas/marklogic-jms-receiver/blob/master/config/connection.properties)
 The receiver is tested against Apache Active MQ. If you are using a different MOM, please change the initial_context_factory property.
