@@ -89,6 +89,9 @@ public class Main {
 
                     topicConn.setExceptionListener(asyncReceiver);
                     topicConn.start();
+                }else{
+                    logger.error("Unknown type: ", type);
+                    throw new RuntimeException("Unknown type: "+ type);
                 }
             }
         }
