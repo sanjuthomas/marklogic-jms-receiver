@@ -12,3 +12,5 @@ The receiver is tested against Apache Active MQ. (apache-activemq-5.13.3) If you
 Run the Main class with connection.properties file as the first argument.
 
 `java marklogic.jms.receiver.Main connection.properties`
+
+# [Demo Video](https://www.youtube.com/watch?v=SaDUsSHXoQg&feature=youtu.be)
