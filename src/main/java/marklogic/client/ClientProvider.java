@@ -16,16 +16,20 @@ public class ClientProvider {
     
     private Properties properties;
     
+    private DatabaseClient client;
+    
     public ClientProvider(Properties properties){
         this.properties = properties;
     }
 
 	public DatabaseClient getClient(){
 		
-		return DatabaseClientFactory.newClient(properties.getProperty(ConnectionProperties.ML_SERVER), 
+	    if(null != client) return client;
+	    client =  DatabaseClientFactory.newClient(properties.getProperty(ConnectionProperties.ML_SERVER), 
                 Integer.valueOf(properties.getProperty(ConnectionProperties.ML_PORT)),
                 new DigestAuthContext(String.valueOf(properties.get(ConnectionProperties.ML_USERNAME)), 
                         String.valueOf(properties.get(ConnectionProperties.ML_PASSWORD))));
+	    return client;
 	}
 
 }
