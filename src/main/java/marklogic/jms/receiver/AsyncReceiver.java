@@ -34,19 +34,20 @@ import marklogic.client.WriterImpl;
  */
 
 public class AsyncReceiver implements MessageListener, ExceptionListener {
-	
-	private static final Logger logger = LoggerFactory.getLogger(AsyncReceiver.class);
-	
-	private final ObjectMapper MAPPER = new ObjectMapper();
-    
+
+    private static final Logger logger = LoggerFactory
+            .getLogger(AsyncReceiver.class);
+
+    private final ObjectMapper MAPPER = new ObjectMapper();
+
     private Writer writer;
-    
-    public AsyncReceiver(Properties properties){
+
+    public AsyncReceiver(Properties properties) {
         this.writer = new WriterImpl(new ClientProvider(properties));
     }
 
     public void onException(JMSException e) {
-    	logger.error(e.getMessage(), e);
+        logger.error(e.getMessage(), e);
     }
 
     public void onMessage(Message m) {
@@ -54,26 +55,29 @@ public class AsyncReceiver implements MessageListener, ExceptionListener {
             final TextMessage message = (TextMessage) m;
             try {
                 final String messageText = message.getText();
-                if(null != messageText){
-                    if(messageText.trim().startsWith("<")){
-                    	writer.write(new DOMHandle(build(messageText)));
-                    }else if(messageText.trim().startsWith("{")){
-                        writer.write(new JacksonHandle(MAPPER.readTree(messageText)));
-                    }else{
-                    	writer.write(new StringHandle(messageText));
+                if (null != messageText) {
+                    if (messageText.trim().startsWith("<")) {
+                        writer.write(new DOMHandle(build(messageText)));
+                    } else if (messageText.trim().startsWith("{")) {
+                        writer.write(new JacksonHandle(MAPPER
+                                .readTree(messageText)));
+                    } else {
+                        writer.write(new StringHandle(messageText));
                     }
                 }
             } catch (Exception e) {
-            	logger.error(e.getMessage(), e);
+                logger.error(e.getMessage(), e);
             }
-        } 
+        }
     }
-    
-    private Document build(String xml) throws ParserConfigurationException, SAXException, IOException{
-    	
-    	final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-    	final DocumentBuilder builder = factory.newDocumentBuilder();
-    	return builder.parse(new ByteArrayInputStream(xml.getBytes()));
+
+    private Document build(String xml) throws ParserConfigurationException,
+            SAXException, IOException {
+
+        final DocumentBuilderFactory factory = DocumentBuilderFactory
+                .newInstance();
+        final DocumentBuilder builder = factory.newDocumentBuilder();
+        return builder.parse(new ByteArrayInputStream(xml.getBytes()));
     }
-    
+
 }
